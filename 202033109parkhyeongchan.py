@@ -1,68 +1,80 @@
 import streamlit as st
-import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.signal import TransferFunction, lsim
+import control
 
 def main():
-    st.title("Streamlit App: System Response")
+    st.write('202033109 ')
 
-    # Transfer function coefficients
-    num = [100]
-    den = [1, 5, 6]
-
-    # Define transfer function G(s)
-    G = TransferFunction(num, den)
-
-    # Time array
-    t = np.linspace(0, 10, 500)
-
-    # Create sinusoidal input
-    u = np.sin(t)
-
-    # Compute system response
-    t, y, _ = lsim(G, u, t)
-
-    # plotting
-    fig, ax = plt.subplots(figsize=(10, 6))
-
-    # Input signal plot
-    ax.plot(t, u, label='Input (sinusoidal)', color='blue')
-
-    # Output signal plot
-    ax.plot(t, y, label='Output', color='red')
-
-    ax.set_title('Input & Output Over Time')
-    ax.set_xlabel('Time')
-    ax.set_ylabel('Amplitude')
-    ax.grid()
-    ax.legend()
-
-    # Display the plot using Streamlit
-    st.pyplot(fig)
-
-    # Define the system
-    s1 = TransferFunction([100], [1, 5, 6])  # G(s) = 100/(s+2)(s+3)
-
-    # Define the frequency range
-    frequencies = np.logspace(-2, 2, 500)  # frequencies
-
-    # Calculate frequency response
-    w, mag, phase = s1.bode(frequencies)
-
-    # Create Bode magnitude plot
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 6))
-    ax1.semilogx(w, mag)  # Bode magnitude plot
-    ax1.set_title('Bode plot of G(s) = 100/(s+2)(s+3)')
-    ax1.set_ylabel('Magnitude [dB]')
-
-    # Create Bode phase plot
-    ax2.semilogx(w, phase)  # Bode phase plot
-    ax2.set_ylabel('Phase [degrees]')
-    ax2.set_xlabel('Frequency [Hz]')
-
-    # Display the plot using Streamlit
-    st.pyplot(fig)
-
-if __name__ == '__main__':
+if name == 'main':
     main()
+
+전달함수 G(s) 정의
+num = [100] # 분자 계수
+den = [1, 5, 6] # 분모 계수: s^2 + 5s + 6
+G = control.TransferFunction(num, den)
+
+폐루프 전달함수 T(s) 계산
+H = 1  # 피드백 루프의 전달함수 (1이면 피드백이 없는 상태)
+T = control.series(G, H)
+T = control.minreal(T)  # 최소 실수화
+
+출력 값 출력
+st.write('전달함수:')
+st.latex(r"\frac{100}{{(s+2)(s+3)+100}}")
+
+시간 벡터 생성
+t = np.linspace(0, 10, 1000)
+
+Unit step 입력 생성
+u = np.ones_like(t)
+
+시스템 응답 계산
+t, y = control.step_response(T, T=t, input=u)
+
+응답곡선 그리기
+fig1, ax1 = plt.subplots()
+ax1.plot(t, y)
+ax1.set_xlabel('Time')
+ax1.set_ylabel('Output')
+ax1.set_title('Step Response')
+ax1.grid(True)
+
+주파수 응답 계산
+omega, mag, phase = control.bode(T)
+
+보드선도 그리기
+fig2, (ax2, ax3) = plt.subplots(2, 1)
+ax2.semilogx(omega, mag)  # 주파수 응답의 크기
+ax2.set_xlabel('Frequency')
+ax2.set_ylabel('Magnitude (dB)')
+ax2.set_title('Bode Plot - Magnitude')
+ax2.grid(True)
+
+ax3.semilogx(omega, phase)  # 주파수 응답의 위상
+ax3.set_xlabel('Frequency')
+ax3.set_ylabel('Phase (degrees)')
+ax3.set_title('Bode Plot - Phase')
+ax3.grid(True)
+
+그래프를 Streamlit 앱에 출력
+st.write('Step Response:')
+st.pyplot(fig1)
+
+st.write('Bode Plot:')
+st.pyplot(fig2)
+
+시스템 응답 계산
+t, y = control.step_response(T, T=t, input=u)
+
+응답곡선 그리기
+fig1, ax1 = plt.subplots()
+ax1.plot(t, y)
+ax1.set_xlabel('Time')
+ax1.set_ylabel('Output')
+ax1.set_title('Step Response')
+ax1.grid(True)
+
+그래프를 Streamlit 앱에 출력
+st.write('Step Response:')
+st.pyplot(fig1)
